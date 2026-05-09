@@ -133,13 +133,40 @@ function displayResults(groupedResults) {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'word-group';
         
-        groupDiv.innerHTML = `
-            <div class="group-title">${len} Letters <span>${words.length}</span></div>
-            <div class="word-grid">
-                ${words.map(w => `<div class="word-chip">${w}</div>`).join('')}
-            </div>
-        `;
+        const grid = document.createElement('div');
+        grid.className = 'word-grid';
+
+        words.forEach(word => {
+            const chip = document.createElement('div');
+            chip.className = 'word-chip';
+            chip.textContent = word;
+            
+            // Handle tap for dictionary lookup
+            chip.addEventListener('click', () => {
+                // Option 1: Try native dictionary protocol (works on some iOS versions/apps)
+                // Option 2: Fallback to Google Define which is very mobile friendly
+                const url = `https://www.google.com/search?q=define+${word}`;
+                window.open(url, '_blank');
+            });
+
+            // Long press or right click to copy (optional enhancement)
+            chip.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                navigator.clipboard.writeText(word);
+                const originalText = chip.textContent;
+                chip.textContent = 'COPIED!';
+                chip.style.color = '#10b981';
+                setTimeout(() => {
+                    chip.textContent = originalText;
+                    chip.style.color = '';
+                }, 1000);
+            });
+
+            grid.appendChild(chip);
+        });
         
+        groupDiv.innerHTML = `<div class="group-title">${len} Letters <span>${words.length}</span></div>`;
+        groupDiv.appendChild(grid);
         resultsList.appendChild(groupDiv);
     });
 
