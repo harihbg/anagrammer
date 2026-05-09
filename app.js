@@ -19,7 +19,7 @@ window.addEventListener('load', () => {
 });
 
 lettersInput.addEventListener('input', (e) => {
-    const val = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+    const val = e.target.value.toLowerCase().replace(/[^a-z.]/g, '');
     lettersInput.value = val; // Force clean input
     
     if (val.length >= 2) {
@@ -49,29 +49,21 @@ function solve(input) {
 
 /**
  * Optimized sub-anagram finder.
- * Finds all words that can be made from a subset of the input letters.
+ * Finds all words that can be made from a subset of the input letters,
+ * treating '.' as a wildcard (blank tile).
  */
 function findSubAnagrams(input) {
-    const sortedInput = input.split('').sort().join('');
+    const wildcards = (input.match(/\./g) || []).length;
+    const cleanInput = input.replace(/\./g, '');
+    const inputFreq = getFrequencyMap(cleanInput);
+    
     const found = new Set();
-    
-    // 1. Direct Anagram Check
-    if (window.DICTIONARY[sortedInput]) {
-        window.DICTIONARY[sortedInput].forEach(w => found.add(w));
-    }
-
-    // 2. Sub-anagrams (Power set of letters)
-    // For Scrabble, we want all possible words.
-    // However, generating a full power set of a 15-letter input is 2^15.
-    // Better approach: Iterate over keys if input is small, or use a Frequency Map check.
-    
-    const inputFreq = getFrequencyMap(input);
     const keys = Object.keys(window.DICTIONARY);
     
     for (const key of keys) {
         if (key.length > input.length) continue;
         
-        if (isSubset(key, inputFreq)) {
+        if (isSubset(key, inputFreq, wildcards)) {
             window.DICTIONARY[key].forEach(w => found.add(w));
         }
     }
@@ -95,12 +87,29 @@ function getFrequencyMap(str) {
     return map;
 }
 
-function isSubset(key, inputFreq) {
-    const keyFreq = getFrequencyMap(key);
-    for (const char in keyFreq) {
-        if (!inputFreq[char] || keyFreq[char] > inputFreq[char]) {
-            return false;
+/**
+ * Checks if a dictionary key (alphagram) can be formed by the input letters
+ * plus a limited number of wildcards.
+ */
+function isSubset(key, inputFreq, wildcardCount) {
+    let neededWildcards = 0;
+    let i = 0;
+    
+    // Since 'key' is an alphagram (sorted), we can count consecutive chars efficiently
+    while (i < key.length) {
+        const char = key[i];
+        let countInKey = 0;
+        while (i < key.length && key[i] === char) {
+            countInKey++;
+            i++;
         }
+        
+        const countInInput = inputFreq[char] || 0;
+        if (countInKey > countInInput) {
+            neededWildcards += (countInKey - countInInput);
+        }
+        
+        if (neededWildcards > wildcardCount) return false;
     }
     return true;
 }
