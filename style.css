@@ -56,7 +56,42 @@ header p {
 
 .input-group {
     position: relative;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-chip input {
+    display: none;
+}
+
+.filter-chip span {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.filter-chip input:checked + span {
+    border-color: var(--accent);
+    background-color: var(--accent-glow);
+    color: var(--accent);
 }
 
 input {

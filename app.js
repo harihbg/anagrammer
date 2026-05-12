@@ -1,5 +1,8 @@
 const lettersInput = document.getElementById('letters');
 const clearBtn = document.getElementById('clear-btn');
+const filterGt5 = document.getElementById('filter-gt5');
+const filterEq5 = document.getElementById('filter-eq5');
+const filterLt5 = document.getElementById('filter-lt5');
 const statusDiv = document.getElementById('status');
 const resultsContainer = document.getElementById('results-container');
 const resultCount = document.getElementById('result-count');
@@ -10,6 +13,7 @@ let currentRequestId = 0;
 let debounceTimer = null;
 let useMainThread = false;
 let cachedKeysByLength = null;
+let lastResults = null;
 
 // Initialize worker or fallback
 function init() {
@@ -27,6 +31,13 @@ function init() {
             loadDictionaryInMainThread();
         }
     }
+
+    // Filter listeners
+    [filterGt5, filterEq5, filterLt5].forEach(el => {
+        el.addEventListener('change', () => {
+            if (lastResults) displayResults(lastResults);
+        });
+    });
 }
 
 function initWorker() {
@@ -42,7 +53,10 @@ function initWorker() {
         } else if (type === 'error') {
             loadDictionaryInMainThread();
         } else if (type === 'results') {
-            if (requestId === currentRequestId) displayResults(results);
+            if (requestId === currentRequestId) {
+                lastResults = results;
+                displayResults(results);
+            }
         }
     };
 
@@ -77,12 +91,14 @@ lettersInput.addEventListener('input', (e) => {
     if (val.length >= 2) {
         debounceTimer = setTimeout(() => solve(val), 150);
     } else {
+        lastResults = null;
         hideResults();
     }
 });
 
 clearBtn.addEventListener('click', () => {
     lettersInput.value = '';
+    lastResults = null;
     hideResults();
     lettersInput.focus();
 });
@@ -97,7 +113,9 @@ function solve(input) {
     if (!useMainThread && worker) {
         worker.postMessage({ input, requestId: currentRequestId });
     } else if (window.DICTIONARY) {
-        displayResults(findSubAnagramsMain(input));
+        const results = findSubAnagramsMain(input);
+        lastResults = results;
+        displayResults(results);
     }
 }
 
@@ -182,18 +200,28 @@ function getFrequencyMap(str) {
 
 function displayResults(groupedResults) {
     const fragment = document.createDocumentFragment();
-    const lengths = Object.keys(groupedResults).sort((a, b) => b - a);
+    const allLengths = Object.keys(groupedResults).sort((a, b) => b - a);
+    
+    // Filter logic (now mutually exclusive)
+    const filteredLengths = allLengths.filter(lenStr => {
+        const len = parseInt(lenStr);
+        if (filterGt5.checked) return len > 5;
+        if (filterEq5.checked) return len === 5;
+        if (filterLt5.checked) return len < 5;
+        return false;
+    });
+
     let total = 0;
 
-    if (lengths.length === 0) {
-        resultCount.textContent = 'No words found';
+    if (filteredLengths.length === 0) {
+        resultCount.textContent = 'No words found matching filters';
         resultsContainer.classList.remove('hidden');
         resultsList.innerHTML = '';
         return;
     }
 
-    lengths.forEach(len => {
-        const items = groupedResults[len].sort((a, b) => a.word.localeCompare(b.word));
+    filteredLengths.forEach(lenStr => {
+        const items = groupedResults[lenStr].sort((a, b) => a.word.localeCompare(b.word));
         total += items.length;
 
         const groupDiv = document.createElement('div');
@@ -218,7 +246,7 @@ function displayResults(groupedResults) {
             grid.appendChild(chip);
         });
         
-        groupDiv.innerHTML = `<div class="group-title">${len} Letters <span>${items.length}</span></div>`;
+        groupDiv.innerHTML = `<div class="group-title">${lenStr} Letters <span>${items.length}</span></div>`;
         groupDiv.appendChild(grid);
         fragment.appendChild(groupDiv);
     });
@@ -228,6 +256,25 @@ function displayResults(groupedResults) {
     resultCount.textContent = `${total} word${total === 1 ? '' : 's'} found`;
     resultsContainer.classList.remove('hidden');
 }
+
+resultsList.addEventListener('click', (e) => {
+    const chip = e.target.closest('.word-chip');
+    if (chip) window.open(`https://www.google.com/search?q=define+${chip.dataset.word}`, '_blank');
+});
+
+resultsList.addEventListener('contextmenu', (e) => {
+    const chip = e.target.closest('.word-chip');
+    if (chip) {
+        e.preventDefault();
+        const word = chip.dataset.word;
+        navigator.clipboard.writeText(word);
+        const originalContent = chip.innerHTML;
+        chip.textContent = 'COPIED!';
+        chip.style.color = '#10b981';
+        setTimeout(() => { chip.innerHTML = originalContent; chip.style.color = ''; }, 1000);
+    }
+});
+
 
 resultsList.addEventListener('click', (e) => {
     const chip = e.target.closest('.word-chip');

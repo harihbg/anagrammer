@@ -28,6 +28,21 @@
                 <button id="clear-btn" aria-label="Clear input">&times;</button>
             </div>
 
+            <div class="filter-group">
+                <label class="filter-chip">
+                    <input type="radio" name="len-filter" id="filter-gt5" checked>
+                    <span>&gt; 5 chars</span>
+                </label>
+                <label class="filter-chip">
+                    <input type="radio" name="len-filter" id="filter-eq5">
+                    <span>5 chars</span>
+                </label>
+                <label class="filter-chip">
+                    <input type="radio" name="len-filter" id="filter-lt5">
+                    <span>&lt; 5 chars</span>
+                </label>
+            </div>
+
             <div id="status" class="status">Loading dictionary...</div>
 
             <div id="results-container" class="hidden">
