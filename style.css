@@ -177,6 +177,11 @@ input:focus {
     background-color: #334155;
 }
 
+.wildcard {
+    color: #f97316; /* Orange-500 */
+    text-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+}
+
 @media (hover: hover) {
     .word-chip:hover {
         border-color: var(--accent);

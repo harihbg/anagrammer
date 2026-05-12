@@ -1,9 +1,10 @@
-const CACHE_NAME = 'anagrammer-v2';
+const CACHE_NAME = 'anagrammer-v4';
 const ASSETS = [
     './',
     './index.html',
     './style.css',
     './app.js',
+    './worker.js',
     './dictionary.js',
     './manifest.json',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap'
@@ -18,7 +19,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate: Clean up old caches
+// Activate: Clean up old caches and take control
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
@@ -26,7 +27,7 @@ self.addEventListener('activate', (event) => {
                 keys.filter(key => key !== CACHE_NAME)
                     .map(key => caches.delete(key))
             );
-        })
+        }).then(() => self.clients.claim())
     );
 });
 
