@@ -3,9 +3,10 @@ const path = require('path');
 
 // We merge multiple sources to match the comprehensive nature of Wordplays
 const inputPaths = [
-    path.join(__dirname, 'words_alpha.txt'),
-    path.join(__dirname, 'sowpods.txt'),
-    path.join(__dirname, 'twl06.txt')
+    path.join(__dirname, 'csw24.txt'),
+    // path.join(__dirname, 'words_alpha.txt'),
+    // path.join(__dirname, 'sowpods.txt'),
+    // path.join(__dirname, 'twl06.txt')
 ];
 const outputPath = path.join(__dirname, 'dictionary.js');
 

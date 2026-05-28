@@ -1,4 +1,4 @@
-const CACHE_NAME = 'anagrammer-v4';
+const CACHE_NAME = 'anagrammer-v5';
 const ASSETS = [
     './',
     './index.html',
